@@ -15,6 +15,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
+#include "fsl_sai.h"
 
 #define WM8731_ADDRESS 0x1A
 
@@ -35,6 +36,23 @@
 #define BAUD_RATE	100000
 #define I2C_DELAY	100
 
+#define _WM8731_LEFT_LINEIN         0X18     // MIC SETTINGS: ENABLE MUTE, ENABLE SIMULTANEOUS LOAD TO LEFT AND RIGHT CHANNELS
+#define _WM8731_RIGHT_LINEIN        0X10     // MIC SETTINGS: ENABLE MUTE, ENABLE SIMULTANEOUS LOAD TO LEFT AND RIGHT CHANNELS
+#define _WM8731_LEFT_HP             0XF0     // HEADPHONE SETTINGS : -9DB OUTPUT
+#define _WM8731_RIGHT_HP            0XF0     // HEADPHONE SETTINGS : -9DB OUTPUT
+#define _WM8731_ANALOGAUDIO         0X11       // DAC SELECT
+#define _WM8731_DIGITALAUDIO        0X00
+#define _WM8731_POWER               0X00       // DISABLE POWER DOWN
+#define _WM8731_DAIF                0X5A       // ENABLE MASTER MODE, 24BIT DATA I2S
+#define _WM8731_SAMPLING            0X18       // 32000HZ,12.288MHz oscillator.
+#define _WM8731_ACTIVATE            0X01       // MODULE IS ON
+#define _WM8731_DEACTIVATE          0X00       // MODULE IS OFF
+#define _WM8731_RESET               0X00       // RESET VALUE
+
 freertos_i2c_flag_t config_codec(void);
+
+void codec_audio_play(void);
+
+void codec_sampling(void);
 
 #endif /* WM87313_H_ */

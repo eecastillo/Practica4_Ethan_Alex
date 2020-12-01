@@ -7,6 +7,10 @@
 
 #include <WM87313.h>
 static freertos_i2c_config_t codec_i2c_config;
+static  sai_transceiver_t config;
+static sai_handle_t sai_rx_handle;
+
+static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData);
 
 freertos_i2c_flag_t config_codec(void)
 {
@@ -53,4 +57,37 @@ freertos_i2c_flag_t config_codec(void)
 	}
 	return codec_sucess;
 }
+static void codec_i2s_config(void)
+{
+	CLOCK_EnableClock(kCLOCK_PortC);
 
+	PORTC->PCR[1] = PORT_PCR_MUX(6);	//I2S0 TXD0 (Alt 6) PTC1
+	PORTC->PCR[5] = PORT_PCR_MUX(4);	//I2S0 RXD0 (Alt 4) PTC5
+	PORTC->PCR[9] = PORT_PCR_MUX(4);	//I2S0 RX_BCLK (Alt 4) PTC9
+	PORTC->PCR[7] = PORT_PCR_MUX(4);	//I2S0 RX_FS (Alt 4) PTC1
+
+	SAI_Init(I2S0);
+
+	SAI_TransferRxCreateHandle(I2S0, &sai_rx_handle, rxCallback, NULL);
+
+	SAI_GetClassicI2SConfig(&config, kSAI_WordWidth24bits, kSAI_Stereo, 1<<0);
+
+	config.bitClock.bclkSource = kSAI_BclkSourceBusclk;
+	config.syncMode = kSAI_ModeAsync;
+	config.masterSlave = kSAI_Slave;
+	config.frameSync.frameSyncPolarity = kSAI_SampleOnRisingEdge;
+	SAI_TransferRxSetConfig(I2S0, &sai_rx_handle, &config);
+
+}
+
+static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	xSemaphoreGiveFromISR(
+	 wm8731_handle.rxSemWM8731,
+	 &xHigherPriorityTaskWoken
+	);
+
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}

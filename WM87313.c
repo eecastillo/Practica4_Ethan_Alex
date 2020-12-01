@@ -19,6 +19,8 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle);
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t rxHandle);
 edma_handle_t dmaTxHandle = {0}, dmaRxHandle = {0};
 
+static void rx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
+
 static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData);
 
 freertos_i2c_flag_t config_codec(void)
@@ -191,3 +193,28 @@ void edma_initialize(void)
 	DMAMUX_SetSource(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL, (uint8_t)EXAMPLE_SAI_RX_SOURCE);
 	DMAMUX_EnableChannel(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL);
 }
+
+static void rx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
+{
+    if (kStatus_SAI_RxError == status)
+    {
+        /* Handle the error. */
+    }
+    else
+    {
+        emptyBlock--;
+    }
+}
+
+static void tx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
+{
+    if (kStatus_SAI_TxError == status)
+    {
+        /* Handle the error. */
+    }
+    else
+    {
+        emptyBlock++;
+    }
+}
+

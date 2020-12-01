@@ -21,29 +21,6 @@
 
 
 
-static void rx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
-{
-    if (kStatus_SAI_RxError == status)
-    {
-        /* Handle the error. */
-    }
-    else
-    {
-        emptyBlock--;
-    }
-}
-
-static void tx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
-{
-    if (kStatus_SAI_TxError == status)
-    {
-        /* Handle the error. */
-    }
-    else
-    {
-        emptyBlock++;
-    }
-}
 
 SemaphoreHandle_t initialization_sem;
 uint32_t Buffer[4*1024];

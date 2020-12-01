@@ -12,6 +12,7 @@
 #define NUM_TAPS 51
 #define BLOCK_SIZE 1042
 #define TEST_LENGTH_SAMPLES 4*1024
+typedef enum {LOW_PASS, HIGH_PASS, BAND_PASS} filter_t;
 
 void init_LP();
 void init_BP();

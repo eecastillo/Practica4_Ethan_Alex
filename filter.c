@@ -73,15 +73,15 @@ void init_buff(uint32_t *buffer){
     init_BP();
 }
 
-void apply_filter(uint8_t select){
+void apply_filter(filter_t select){
     switch(select){
-        case 0:
+        case LOW_PASS:
             arm_fir_f32(&S[0], input + (4 * BLOCK_SIZE), output + (4 * BLOCK_SIZE), BLOCK_SIZE);
             break;
-        case 1:
+        case HIGH_PASS:
             arm_fir_f32(&S[1], input + (4 * BLOCK_SIZE), output + (4 * BLOCK_SIZE), BLOCK_SIZE);
             break;
-        case 2:
+        case BAND_PASS:
             arm_fir_f32(&S[2], input + (4 * BLOCK_SIZE), output + (4 * BLOCK_SIZE), BLOCK_SIZE);
             break;
         default:

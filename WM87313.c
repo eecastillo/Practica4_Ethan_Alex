@@ -57,7 +57,7 @@ freertos_i2c_flag_t config_codec(void)
 	}
 	return codec_sucess;
 }
-static void codec_i2s_config(void)
+void codec_i2s_config(void)
 {
 	CLOCK_EnableClock(kCLOCK_PortC);
 
@@ -80,7 +80,7 @@ static void codec_i2s_config(void)
 
 }
 
-static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData)
+void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 

@@ -88,6 +88,7 @@ void init_project(void *parameters)
 	}
 	//CONFIGURAR I2S
 	codec_i2s_config();
+	//CONFIGURAR DMA
 
 	while(1)
 	{

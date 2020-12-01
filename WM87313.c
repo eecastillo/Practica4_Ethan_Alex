@@ -35,18 +35,47 @@ freertos_i2c_flag_t config_codec(void)
 		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 
 		data[0] = LEFT_LINE_IN_REG;
-		data[1] = 23;
+		data[1] = CODEC_LEFT_LINEIN;
 		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
 		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 
 		data[0] = RIGHT_LINE_IN_REG;
-		data[1] = 23;
+		data[1] = CODEC_RIGHT_LINEIN;
 		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
 		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 
+		data[0] = LEFT_HEADPHONE_OUT_REG;
+		data[1] = CODEC_LEFT_HP;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+
+		data[0] = RIGHT_HEADPHONE_OUT_REG;
+		data[1] = CODEC_RIGHT_HP;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 
 		data[0] = ANALOGUE_AUDIO_PATH_REG;
-		data[1] = 0x05;
+		data[1] = CODEC_ANALOGAUDIO;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+
+		data[0] = DIGITAL_AUDIO_PATH_REG;
+		data[1] = CODEC_DIGITALAUDIO;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+
+		data[0] = POWER_DOWN_CTRL_REG;
+		data[1] = CODEC_POWER;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+
+		data[0] = DIG_AUDIO_INTERFACE_REG;
+		data[1] = CODEC_DAIF;
+		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+
+		data[0] = SAMPLING_CTRL_REG;
+		data[1] = CODEC_SAMPLING;
 		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
 		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 
@@ -54,6 +83,8 @@ freertos_i2c_flag_t config_codec(void)
 		data[1] = 0x01;
 		codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
 		vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+		activate_codec();
+
 	}
 	return codec_sucess;
 }
@@ -84,12 +115,16 @@ void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *use
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-	xSemaphoreGiveFromISR(
+/*	xSemaphoreGiveFromISR(
 	 wm8731_handle.rxSemWM8731,
 	 &xHigherPriorityTaskWoken
-	);
+	);*/
 
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+void txCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData)
+{
+
 }
 
 void codec_rx(uint8_t * buffer, uint32_t size)
@@ -100,6 +135,21 @@ void codec_rx(uint8_t * buffer, uint32_t size)
 
 	if(kStatus_Success == SAI_TransferReceiveNonBlocking(I2S0, &sai_rx_handle, &xfer))
 	{
-		xSemaphoreTake(wm8731_handle.rxSemWM8731, portMAX_DELAY);
+	//	xSemaphoreTake(wm8731_handle.rxSemWM8731, portMAX_DELAY);
 	}
 }
+void codec_audio_play(void)
+{
+	data[0] = ACTIVE_CTRL_REG;
+	data[1] = CODEC_DEACTIVATE;
+	codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+	vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+}
+void activate_codec(void)
+{
+	data[0] = ACTIVE_CTRL_REG;
+	data[1] = CODEC_ACTIVATE;
+	codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+	vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+}
+

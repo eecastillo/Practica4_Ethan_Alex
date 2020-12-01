@@ -15,8 +15,8 @@
 typedef enum {LOW_PASS, HIGH_PASS, BAND_PASS} filter_t;
 
 void init_LP();
-void init_BP();
 void init_HP();
+void init_BP();
 void init_buff(uint32_t *buffer);
 void apply_filter(uint8_t select);
 

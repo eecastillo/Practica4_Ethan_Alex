@@ -18,7 +18,12 @@
  * @brief   Application entry point.
  */
 SemaphoreHandle_t i2c_sem;
+SemaphoreHandle_t initialization_sem;
+uint32_t Buffer[4*1024];
+uint32_t rxBuffer = 0;
+
 void init_project(void *parameters);
+void codec_get_audio(void *parameters);
 
 void init_wm8731(void *parameters)
 {
@@ -53,13 +58,13 @@ int main(void)
     /* Init FSL debug console. */
     BOARD_InitDebugConsole();
 
-    freertos_I2S_initialize();
+    //freertos_I2S_initialize();
     i2c_sem = xSemaphoreCreateBinary();
-
-    xTaskCreate(init_wm8731, "init_codec", 110, NULL, 1, NULL);
-    xTaskCreate(codec_audio, "codec_audio", 110, NULL, 1, NULL);
+    initialization_sem = xSemaphoreCreateBinary();
 
     xTaskCreate(init_project, "init project", 110, NULL, 1, NULL);
+    xTaskCreate(codec_get_audio, "get audio", 110, NULL, 1, NULL);
+
     vTaskStartScheduler();
 
     for(;;)
@@ -86,7 +91,7 @@ void init_project(void *parameters)
 
 	while(1)
 	{
-		xSemaphoreGive(audio_andle.init_end);
+		xSemaphoreGive(initialization_sem);
 
 		vTaskDelay(portMAX_DELAY);
 	}
@@ -95,7 +100,7 @@ void init_project(void *parameters)
 
 void codec_get_audio(void *parameters)
 {
-	xSemaphoreTake(audio_handle.init_end, portMAX_DELAY);
+	xSemaphoreTake(initialization_sem, portMAX_DELAY);
 
 	while(1)
 	{

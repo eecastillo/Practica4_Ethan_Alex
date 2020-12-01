@@ -99,7 +99,10 @@ void codec_i2s_config(void)
 
 	SAI_Init(I2S0);
 
-	SAI_TransferRxCreateHandle(I2S0, &sai_rx_handle, rxCallback, NULL);
+	//SAI_TransferRxCreateHandle(I2S0, &sai_rx_handle, rxCallback, NULL);
+
+    SAI_TransferTxCreateHandleEDMA(DEMO_SAI, &txHandle, tx_callback, NULL, &dmaTxHandle);
+    SAI_TransferRxCreateHandleEDMA(DEMO_SAI, &rxHandle, rx_callback, NULL, &dmaRxHandle);
 
 	SAI_GetClassicI2SConfig(&config, kSAI_WordWidth24bits, kSAI_Stereo, 1<<0);
 

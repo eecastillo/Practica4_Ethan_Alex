@@ -17,7 +17,37 @@
 /*
  * @brief   Application entry point.
  */
-SemaphoreHandle_t i2c_sem;
+
+AT_NONCACHEABLE_SECTION_ALIGN(static uint8_t Buffer[BUFFER_NUMBER * BUFFER_SIZE], 4);
+AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle);
+AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t rxHandle);
+edma_handle_t dmaTxHandle = {0}, dmaRxHandle = {0};
+
+
+static void rx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
+{
+    if (kStatus_SAI_RxError == status)
+    {
+        /* Handle the error. */
+    }
+    else
+    {
+        emptyBlock--;
+    }
+}
+
+static void tx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
+{
+    if (kStatus_SAI_TxError == status)
+    {
+        /* Handle the error. */
+    }
+    else
+    {
+        emptyBlock++;
+    }
+}
+
 SemaphoreHandle_t initialization_sem;
 uint32_t Buffer[4*1024];
 uint32_t rxBuffer = 0;
@@ -25,29 +55,6 @@ uint32_t rxBuffer = 0;
 void init_project(void *parameters);
 void codec_get_audio(void *parameters);
 
-void init_wm8731(void *parameters)
-{
-	uint8_t sucess = freertos_i2c_fail;
-	sucess = config_codec();
-	if(freertos_i2c_sucess == sucess)
-	{
-		PRINTF("Configuracion finalizada\n\r");
-	}
-	xSemaphoreGive(i2c_sem);
-	vTaskSuspend(NULL);
-}
-
-void codec_audio(void *parameters)
-{
-
-	xSemaphoreTake(i2c_sem, portMAX_DELAY);
-
-	for(;;)
-	{
-		/*TODO AUDIO FUNCTIONS*/
-		vTaskDelay(pdMS_TO_TICKS(300));
-	}
-}
 
 int main(void)
 {
@@ -58,8 +65,6 @@ int main(void)
     /* Init FSL debug console. */
     BOARD_InitDebugConsole();
 
-    //freertos_I2S_initialize();
-    i2c_sem = xSemaphoreCreateBinary();
     initialization_sem = xSemaphoreCreateBinary();
 
     xTaskCreate(init_project, "init project", 110, NULL, 1, NULL);
@@ -86,12 +91,29 @@ void init_project(void *parameters)
 	{
 		PRINTF("Inicializacion I2C fallida");
 	}
-	//CONFIGURAR I2S
-	codec_i2s_config();
+
 	//CONFIGURAR DMA
 	//ASOCIAR DMA CON I2S
 	//ASOCIAR INTERRUPCIONES DE CUANDO EL DMA ESTE LLENO Y PROCESAR Y VOLVER A LLENAR DMA RX
 	//PROCESAR LA INFORMACION Y PONERLA EN EL CANAL DE TRANSMICION DE DMA
+	 /* Init DMA and create handle for DMA */
+	EDMA_GetDefaultConfig(&dmaConfig);
+	EDMA_Init(EXAMPLE_DMA, &dmaConfig);
+	EDMA_CreateHandle(&dmaTxHandle, EXAMPLE_DMA, EXAMPLE_TX_CHANNEL);
+	EDMA_CreateHandle(&dmaRxHandle, EXAMPLE_DMA, EXAMPLE_RX_CHANNEL);
+
+	/* Init DMAMUX */
+	DMAMUX_Init(EXAMPLE_DMAMUX);
+	DMAMUX_SetSource(EXAMPLE_DMAMUX, EXAMPLE_TX_CHANNEL, (uint8_t)EXAMPLE_SAI_TX_SOURCE);
+	DMAMUX_EnableChannel(EXAMPLE_DMAMUX, EXAMPLE_TX_CHANNEL);
+	DMAMUX_SetSource(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL, (uint8_t)EXAMPLE_SAI_RX_SOURCE);
+	DMAMUX_EnableChannel(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL);
+
+
+	//CONFIGURAR I2S
+	codec_i2s_config();
+
+
 	while(1)
 	{
 		xSemaphoreGive(initialization_sem);

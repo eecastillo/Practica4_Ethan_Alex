@@ -91,3 +91,15 @@ static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, vo
 
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
+void codec_rx(uint8_t * buffer, uint32_t size)
+{
+	sai_transfer_t xfer;
+	xfer.data = buffer;
+	xfer.dataSize = size;
+
+	if(kStatus_Success == SAI_TransferReceiveNonBlocking(I2S0, &sai_rx_handle, &xfer))
+	{
+		xSemaphoreTake(wm8731_handle.rxSemWM8731, portMAX_DELAY);
+	}
+}

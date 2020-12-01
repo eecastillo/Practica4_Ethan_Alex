@@ -54,5 +54,7 @@ freertos_i2c_flag_t config_codec(void);
 void codec_audio_play(void);
 
 void codec_sampling(void);
+void codec_rx(uint8_t * buffer, uint32_t size);
+
 
 #endif /* WM87313_H_ */

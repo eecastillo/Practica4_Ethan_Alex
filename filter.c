@@ -2,7 +2,7 @@
 
 arm_fir_instance_f32 S[3];
 static float32_t sysOut[TEST_LENGTH_SAMPLES];
-static float32_t firState[3][NLOCK_SIZE + NUM_TAPS - 1];
+static float32_t firState[3][BLOCK_SIZE + NUM_TAPS - 1];
 const float32_t LP[NUM_TAPS] = {
     0.00256801531776202, 0.00272079238218348, 0.00311263620353168, 0.00374640507156293,
     0.00462028580076543, 0.00572773938519825, 0.00705754331217209, 0.00859393090688225,	
@@ -54,15 +54,15 @@ const float32_t HP[NUM_TAPS] = {
 float32_t *input, *output;
 
 void init_LP(){
-    arm_fir_init_f32(&S[0], NUM_TAPS, (floar32_t*)&LP[0], &firState[0][0], blockSize);
+    arm_fir_init_f32(&S[0], NUM_TAPS, (float32_t*)&LP[0], &firState[0][0], BLOCK_SIZE);
 }
 
 void init_HP(){
-    arm_fir_init_f32(&S[1], NUM_TAPS, (floar32_t*)&HP[0], &firState[1][0], blockSize);
+    arm_fir_init_f32(&S[1], NUM_TAPS, (float32_t*)&HP[0], &firState[1][0], BLOCK_SIZE);
 }
 
 void init_BP(){
-    arm_fir_init_f32(&S[2], NUM_TAPS, (floar32_t*)&BP[0], &firState[2][0], blockSize);
+    arm_fir_init_f32(&S[2], NUM_TAPS, (float32_t*)&BP[0], &firState[2][0], BLOCK_SIZE);
 }
 
 void init_buff(uint32_t *buffer){

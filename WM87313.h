@@ -19,6 +19,7 @@
 #include "fsl_sai_edma.h"
 #include "freertos_I2S.h"
 
+
 #define WM8731_ADDRESS 0x1A
 
 #define LEFT_LINE_IN_REG     	0x00
@@ -34,6 +35,12 @@
 #define ENABLE_CODEC			0x12
 #define ACTIVE_CTRL_REG	        0x09       // Activar Control
 
+#define EXAMPLE_TX_CHANNEL (0U)
+#define EXAMPLE_RX_CHANNEL (1U)
+#define EXAMPLE_SAI_TX_SOURCE   kDmaRequestMux0I2S0Tx
+#define EXAMPLE_SAI_RX_SOURCE   kDmaRequestMux0I2S0Rx
+#define EXAMPLE_DMA             DMA0
+#define EXAMPLE_DMAMUX          DMAMUX
 
 #define I2C_SCL		2
 #define I2C_SDA		3
@@ -64,6 +71,7 @@ void codec_sampling(void);
 void codec_i2s_config(void);
 void codec_rx(uint8_t * buffer, uint32_t size);
 void activate_codec(void);
+
 
 
 #endif /* WM87313_H_ */

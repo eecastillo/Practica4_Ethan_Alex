@@ -9,6 +9,15 @@
 static freertos_i2c_config_t codec_i2c_config;
 static  sai_transceiver_t config;
 static sai_handle_t sai_rx_handle;
+static edma_config_t dmaConfig = {0};
+
+static uint32_t tx_index = 0U, rx_index = 0U;
+volatile uint32_t emptyBlock = BUFFER_NUMBER;
+
+AT_NONCACHEABLE_SECTION_ALIGN(static uint8_t Buffer[BUFFER_NUMBER * BUFFER_SIZE], 4);
+AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle);
+AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t rxHandle);
+edma_handle_t dmaTxHandle = {0}, dmaRxHandle = {0};
 
 static void rxCallback(I2S_Type *base, sai_handle_t *handle, status_t status, void *userData);
 
@@ -107,10 +116,20 @@ void codec_i2s_config(void)
 	SAI_GetClassicI2SConfig(&config, kSAI_WordWidth24bits, kSAI_Stereo, 1<<0);
 
 	config.bitClock.bclkSource = kSAI_BclkSourceBusclk;
-	config.syncMode = kSAI_ModeAsync;
-	config.masterSlave = kSAI_Slave;
-	config.frameSync.frameSyncPolarity = kSAI_SampleOnRisingEdge;
-	SAI_TransferRxSetConfig(I2S0, &sai_rx_handle, &config);
+//	config.syncMode = kSAI_ModeAsync;
+//	config.masterSlave = kSAI_Slave;
+//	config.frameSync.frameSyncPolarity = kSAI_SampleOnRisingEdge;
+//	SAI_TransferRxSetConfig(I2S0, &sai_rx_handle, &config);
+	config.syncMode = DEMO_SAI_TX_SYNC_MODE;
+	SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
+	config.syncMode = DEMO_SAI_RX_SYNC_MODE;
+	SAI_TransferRxSetConfigEDMA(DEMO_SAI, &rxHandle, &config);
+
+	 /* set bit clock divider */
+	SAI_TxSetBitClockRate(DEMO_SAI, DEMO_AUDIO_MASTER_CLOCK, DEMO_AUDIO_SAMPLE_RATE, kSAI_WordWidth24bits,
+						  DEMO_AUDIO_DATA_CHANNEL);
+	SAI_RxSetBitClockRate(DEMO_SAI, DEMO_AUDIO_MASTER_CLOCK, DEMO_AUDIO_SAMPLE_RATE, kSAI_WordWidth24bits,
+						  DEMO_AUDIO_DATA_CHANNEL);
 
 }
 
@@ -141,18 +160,34 @@ void codec_rx(uint8_t * buffer, uint32_t size)
 	//	xSemaphoreTake(wm8731_handle.rxSemWM8731, portMAX_DELAY);
 	}
 }
+
+uint8_t i2c_data[2] = {0};
 void codec_audio_play(void)
 {
-	data[0] = ACTIVE_CTRL_REG;
-	data[1] = CODEC_DEACTIVATE;
-	codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+	i2c_data[0] = ACTIVE_CTRL_REG;
+	i2c_data[1] = CODEC_DEACTIVATE;
+	freertos_i2c_send(WM8731_ADDRESS, i2c_data ,2);
 	vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 }
 void activate_codec(void)
 {
-	data[0] = ACTIVE_CTRL_REG;
-	data[1] = CODEC_ACTIVATE;
-	codec_sucess = freertos_i2c_send(WM8731_ADDRESS, data ,2);
+	i2c_data[0] = ACTIVE_CTRL_REG;
+	i2c_data[1] = CODEC_ACTIVATE;
+	freertos_i2c_send(WM8731_ADDRESS, i2c_data ,2);
 	vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
 }
+void edma_initialize(void)
+{
+	 /* Init DMA and create handle for DMA */
+	EDMA_GetDefaultConfig(&dmaConfig);
+	EDMA_Init(EXAMPLE_DMA, &dmaConfig);
+	EDMA_CreateHandle(&dmaTxHandle, EXAMPLE_DMA, EXAMPLE_TX_CHANNEL);
+	EDMA_CreateHandle(&dmaRxHandle, EXAMPLE_DMA, EXAMPLE_RX_CHANNEL);
 
+	/* Init DMAMUX */
+	DMAMUX_Init(EXAMPLE_DMAMUX);
+	DMAMUX_SetSource(EXAMPLE_DMAMUX, EXAMPLE_TX_CHANNEL, (uint8_t)EXAMPLE_SAI_TX_SOURCE);
+	DMAMUX_EnableChannel(EXAMPLE_DMAMUX, EXAMPLE_TX_CHANNEL);
+	DMAMUX_SetSource(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL, (uint8_t)EXAMPLE_SAI_RX_SOURCE);
+	DMAMUX_EnableChannel(EXAMPLE_DMAMUX, EXAMPLE_RX_CHANNEL);
+}

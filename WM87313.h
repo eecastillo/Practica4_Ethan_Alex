@@ -16,6 +16,8 @@
 #include "semphr.h"
 #include "task.h"
 #include "fsl_sai.h"
+#include "fsl_sai_edma.h"
+#include "freertos_I2S.h"
 
 #define WM8731_ADDRESS 0x1A
 
@@ -50,6 +52,9 @@
 #define CODEC_ACTIVATE            0X01       // MODULE IS ON
 #define CODEC_DEACTIVATE          0X00       // MODULE IS OFF
 #define CODEC_RESET               0X00       // RESET VALUE
+
+#define BUFFER_SIZE (1024U)
+#define BUFFER_NUMBER (4U)
 
 freertos_i2c_flag_t config_codec(void);
 

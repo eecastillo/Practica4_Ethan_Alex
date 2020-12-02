@@ -59,7 +59,7 @@ freertos_i2c_flag_t freertos_i2c_init(freertos_i2c_config_t config)
 
 			/* Port Config */
 			const port_pin_config_t portb2_pinG12_config = {/* Internal pull-up resistor is enabled */
-		    		kPORT_PullDisable,
+		    		kPORT_PullUp,
 		                                                    /* Fast slew rate is configured */
 		                                                    kPORT_FastSlewRate,
 		                                                    /* Passive filter is disabled */
@@ -76,7 +76,7 @@ freertos_i2c_flag_t freertos_i2c_init(freertos_i2c_config_t config)
 		    PORT_SetPinConfig(PORTB, 2U, &portb2_pinG12_config);
 
 		    const port_pin_config_t portb3_pinG11_config = {/* Internal pull-up resistor is enabled */
-		    		kPORT_PullDisable,
+		    		kPORT_PullUp,
 		                                                    /* Fast slew rate is configured */
 		                                                    kPORT_FastSlewRate,
 		                                                    /* Passive filter is disabled */

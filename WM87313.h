@@ -18,6 +18,7 @@
 #include "fsl_sai.h"
 #include "fsl_sai_edma.h"
 #include "freertos_I2S.h"
+#include "fsl_dmamux.h"
 
 
 #define WM8731_ADDRESS 0x1A
@@ -61,7 +62,7 @@
 #define CODEC_RESET               0X00       // RESET VALUE
 
 #define BUFFER_SIZE (1024U)
-#define BUFFER_NUMBER (4U)
+//#define BUFFER_NUMBER (4U)
 
 freertos_i2c_flag_t config_codec(void);
 
@@ -71,6 +72,8 @@ void codec_sampling(void);
 void codec_i2s_config(void);
 void codec_rx(uint8_t * buffer, uint32_t size);
 void activate_codec(void);
+void receive_audio(void);
+void edma_initialize(void);
 
 
 

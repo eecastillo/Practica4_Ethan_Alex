@@ -5,11 +5,13 @@
  *      Author: eduar
  */
 
-#include <WM87313.h>
+#include "WM87313.h"
 static freertos_i2c_config_t codec_i2c_config;
 static  sai_transceiver_t config;
 static sai_handle_t sai_rx_handle;
 static edma_config_t dmaConfig = {0};
+sai_transfer_t xfer;
+
 
 static uint32_t tx_index = 0U, rx_index = 0U;
 volatile uint32_t emptyBlock = BUFFER_NUMBER;
@@ -105,8 +107,9 @@ void codec_i2s_config(void)
 
 	PORTC->PCR[1] = PORT_PCR_MUX(6);	//I2S0 TXD0 (Alt 6) PTC1
 	PORTC->PCR[5] = PORT_PCR_MUX(4);	//I2S0 RXD0 (Alt 4) PTC5
-	PORTC->PCR[9] = PORT_PCR_MUX(4);	//I2S0 RX_BCLK (Alt 4) PTC9
-	PORTC->PCR[7] = PORT_PCR_MUX(4);	//I2S0 RX_FS (Alt 4) PTC1
+	PORTE->PCR[9] = PORT_PCR_MUX(4);	//I2S0 RX_BCLK (Alt 4) PTE9	////////////////SE CONECTAN A ESE PIN, REVISAR ESQUEMATICO
+										//PTE9  ---->  PTC9
+	PORTE->PCR[8] = PORT_PCR_MUX(4);	//I2S0 RX_FS (Alt 4) PTE1
 
 	SAI_Init(I2S0);
 
@@ -218,3 +221,32 @@ static void tx_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t stat
     }
 }
 
+void receive_audio(void)
+{
+	 if (emptyBlock > 0)
+	 {
+			xfer.data     = Buffer + rx_index * BUFFER_SIZE;
+			xfer.dataSize = BUFFER_SIZE;
+			if (kStatus_Success == SAI_TransferReceiveEDMA(DEMO_SAI, &rxHandle, &xfer))
+			{
+				rx_index++;
+			}
+			if (rx_index == BUFFER_NUMBER)
+			{
+				rx_index = 0U;
+			}
+		}
+		if (emptyBlock < BUFFER_NUMBER)
+		{
+			xfer.data     = Buffer + tx_index * BUFFER_SIZE;
+			xfer.dataSize = BUFFER_SIZE;
+			if (kStatus_Success == SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer))
+			{
+				tx_index++;
+			}
+			if (tx_index == BUFFER_NUMBER)
+			{
+				tx_index = 0U;
+			}
+		}
+}

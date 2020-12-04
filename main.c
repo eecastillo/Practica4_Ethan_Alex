@@ -102,7 +102,6 @@ void init_project(void *parameters)
 void initialize_uart(void *parameters)
 {
 	init_buff(Buffer);
-
 	static uart_config_t configuration;
 	UART_GetDefaultConfig(&configuration);
 	configuration.baudRate_Bps = 9600;

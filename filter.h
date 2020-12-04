@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * filter.h
+=======
+ * freertos_I2C.h
+>>>>>>> fb30df9368ec3ad9b243d372b8d96817c565bfdb
  *
  *  Created on: Oct 15, 2020
  *      Author: eduar
@@ -14,6 +18,7 @@
 #define TEST_LENGTH_SAMPLES 4*1024
 #define NUM_BLOCKS TEST_LENGTH_SAMPLES/BLOCK_SIZE
 typedef enum {LOW_PASS, HIGH_PASS, BAND_PASS,DISABLE} filters_t;
+
 
 void init_LP();
 void init_HP();
